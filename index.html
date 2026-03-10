@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>세관 직원배치도</title>
+    <style>
+        body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
+        h2 { text-align: center; color: #004b87; margin-bottom: 20px; font-size: 22px; }
+        .search-container { margin-bottom: 20px; }
+        #searchInput { width: 100%; padding: 12px; box-sizing: border-box; border: 2px solid #004b87; border-radius: 8px; font-size: 16px; outline: none; }
+        
+        .department { background: white; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
+        .dept-title { background: #004b87; color: white; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .dept-title::after { content: '▼'; font-size: 14px; }
+        .dept-title.active::after { content: '▲'; }
+        
+        .member-list { list-style: none; padding: 0; margin: 0; display: none; }
+        .member-list.active { display: block; }
+        .member-item { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .member-item:last-child { border-bottom: none; }
+        
+        .member-info { display: flex; flex-direction: column; }
+        .member-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .member-role { font-size: 13px; color: #666; }
+        
+        .call-btn { background-color: #28a745; color: white; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; display: inline-block; }
+        .call-btn:active { background-color: #218838; }
+        
+        .common-notice { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <h2>세관 연락처</h2>
+    
+    <div class="common-notice">
+        <strong>[주요 대표번호]</strong><br>
+        📞 공항통관정보과(P/L팀) : 032-722-4228<br>
+        🏢 공항협업검사센터(세관지정장치장) : 032-722-4089<br>
+        📦 공항관세무역개발원(관우회 창고) : 032-740-4996<br>
+        ✈️ 공항관세무역개발원(특송물류센터) : 032-744-6481
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="이름, 직책, 부서, 내선번호 검색..." onkeyup="filterContacts()">
+    </div>
+
+    <div id="contactDirectory"></div>
+
+    <script>
+        // 💡 여기에 부서와 직원 데이터를 수시로 업데이트하시면 됩니다.
+        const customsData = [
+            {
+                deptName: "인천공항수입통관1과 (수출입통관국)",
+                prefix: "032-722-",
+                members: [
+                    { name: "임채열", role: "과장", ext: "4210" },
+                    { name: "이경배", role: "1계 주무", ext: "4211" },
+                    { name: "이아름", role: "1계", ext: "4212" },
+                    { name: "박지원", role: "1계", ext: "4219" },
+                    { name: "이옥주", role: "1계", ext: "4199" },
+                    { name: "김차연", role: "1계", ext: "4234" },
+                    { name: "서광수", role: "2계 주무", ext: "4184" },
+                    { name: "정지은", role: "2계", ext: "4214" }
+                    // 필요 시 3계, 4계 등 추가
+                ]
+            },
+            {
+                deptName: "인천공항수입통관2과 (수출입통관국)",
+                prefix: "032-722-",
+                members: [
+                    { name: "박재호", role: "과장", ext: "4251" }, // 과장 내선번호 확인 필요(이미지상 안보임, 임의 기재)
+                    { name: "김미현", role: "2계 주무", ext: "4251" },
+                    { name: "김영길", role: "2계", ext: "4252" },
+                    { name: "강민지", role: "2계", ext: "4253" },
+                    { name: "김연태", role: "1계 주무", ext: "4270" }
+                ]
+            },
+            {
+                deptName: "인천공항수출통관과 (수출입통관국)",
+                prefix: "032-722-",
+                members: [
+                    { name: "최진희", role: "수출통관과장", ext: "4190" },
+                    { name: "허성재", role: "1계 주무", ext: "4195" },
+                    { name: "황혜진", role: "1계", ext: "4203" },
+                    { name: "김성희", role: "1계", ext: "4191" },
+                    { name: "정현규", role: "1계", ext: "4193" },
+                    { name: "이아란", role: "1계", ext: "4116" },
+                    { name: "이진옥", role: "1계", ext: "4206" },
+                    { name: "안미야", role: "2계 주무", ext: "4192" },
+                    { name: "김현숙", role: "2계", ext: "4202" },
+                    { name: "석진영", role: "2계", ext: "4197" },
+                    { name: "이인구", role: "2계", ext: "4196" },
+                    { name: "조연주", role: "2계", ext: "4201" },
+                    { name: "김정숙", role: "2계", ext: "4194" }
+                ]
+            },
+            {
+                deptName: "인천공항심사정보과 (수출입통관국)",
+                prefix: "032-722-",
+                members: [
+                    { name: "권종원", role: "심사정보과장", ext: "4340" },
+                    { name: "이진우", role: "심사정보1주무", ext: "4371" },
+                    { name: "김선희", role: "경정청구", ext: "4376" },
+                    { name: "김소영", role: "서무, 회계", ext: "4372" },
+                    { name: "이형미", role: "경정청구", ext: "4347" },
+                    { name: "허누리", role: "보정심사", ext: "4378" },
+                    { name: "전수현", role: "보정심사, R/S선별", ext: "4370" },
+                    { name: "송은주", role: "보정심사", ext: "4350" },
+                    { name: "정현주", role: "심사정보2주무", ext: "4341" },
+                    { name: "박윤태", role: "확정가격", ext: "4345" },
+                    { name: "박희연", role: "환특법 환급심사", ext: "4361" },
+                    { name: "연선우", role: "일반정정", ext: "4363" },
+                    { name: "서혜인", role: "환특법 환급금지급", ext: "4353" },
+                    { name: "정미영", role: "세액정정, 수리후분석", ext: "4373" },
+                    { name: "박신유", role: "수정, 보정", ext: "4360" },
+                    { name: "권은영", role: "수정, 보정", ext: "4354" },
+                    { name: "이은정", role: "심사정보3주무", ext: "4330" },
+                    { name: "김혜주", role: "쟁송", ext: "4331" },
+                    { name: "김다은", role: "쟁송", ext: "4346" },
+                    { name: "조혜원", role: "쟁송, 기업심사", ext: "4333" },
+                    { name: "손주영", role: "FTA 검증", ext: "4343" },
+                    { name: "김유정", role: "FTA 검증", ext: "4336" },
+                    { name: "한유영", role: "FTA 심사", ext: "4348" },
+                    { name: "이소은", role: "보정심사", ext: "4365" },
+                    { name: "이진이", role: "FTA 심사", ext: "4358" },
+                    { name: "하영신", role: "징수주무", ext: "4351" },
+                    { name: "박형인", role: "과오납환급", ext: "4342" },
+                    { name: "윤수녕", role: "징수, 세금계산서", ext: "4364" },
+                    { name: "김유담", role: "과오납환급", ext: "4349" },
+                    { name: "황혜진", role: "위약환급", ext: "4344" },
+                    { name: "박다솔", role: "납기연장 담보특례", ext: "4352" },
+                    { name: "유다윤", role: "납기연장 담보특례", ext: "4375" },
+                    { name: "이유경", role: "납기연장 담보특례", ext: "4334" }
+                ]
+            },
+            {
+                deptName: "인천공항수출입물류과 (수출입통관국)",
+                prefix: "032-722-",
+                members: [
+                    { name: "남동수", role: "수출입물류과장", ext: "4105" },
+                    { name: "이정완", role: "국 총괄주무", ext: "4106" },
+                    { name: "윤상필", role: "국 서무", ext: "4135" },
+                    { name: "김도완", role: "과 서무", ext: "4112" },
+                    { name: "김묘정", role: "성과관리기획", ext: "4113" },
+                    { name: "황유정", role: "부속실", ext: "4111" },
+                    { name: "강선하", role: "화물1주무", ext: "4121" },
+                    { name: "김현태", role: "수출입기업지원", ext: "4122" },
+                    { name: "구미경", role: "보세구역 특허", ext: "4133" },
+                    { name: "김혜민", role: "입주기업체 등록 및 관리", ext: "4129" },
+                    { name: "최세영", role: "화물운송주선업자", ext: "4147" },
+                    { name: "육여상", role: "화물2주무", ext: "4136" },
+                    { name: "홍수영", role: "국고귀속, 체화", ext: "4134" },
+                    { name: "김남현", role: "적재화물목록 보세운송", ext: "4126" },
+                    { name: "박상준", role: "체화, 폐기", ext: "4137" },
+                    { name: "김소연", role: "적재화물목록 보세운송", ext: "4027" },
+                    { name: "정희주", role: "체화, 공매", ext: "4132" },
+                    { name: "성창렬", role: "적재화물목록 보세운송", ext: "4131" },
+                    { name: "권민주", role: "적재화물목록 보세운송", ext: "4127" },
+                    { name: "박지은", role: "적재화물목록 보세운송", ext: "4124" },
+                    { name: "김영록", role: "순찰계 주무", ext: "4188" },
+                    { name: "강병삼", role: "순찰", ext: "4115" },
+                    { name: "김정인", role: "순찰", ext: "4189" },
+                    { name: "하윤원", role: "순찰", ext: "4142" },
+                    { name: "선정우", role: "순찰", ext: "4145" },
+                    { name: "류승환", role: "순찰", ext: "4141" },
+                    { name: "강은정", role: "순찰", ext: "4146" },
+                    { name: "신동화", role: "순찰", ext: "4144" }
+                ]
+            },
+            {
+                deptName: "인천공항우편통관과 (국제우편세관)",
+                prefix: "032-720-",
+                members: [
+                    { name: "정병규", role: "우편통관과장", ext: "7420" },
+                    { name: "조경민", role: "통관1주무", ext: "7433" },
+                    { name: "신미영", role: "통관2주무", ext: "7470" },
+                    { name: "조숙현", role: "간이통관", ext: "7435" },
+                    { name: "김웅배", role: "간이통관", ext: "7498" },
+                    { name: "김광민", role: "간이통관", ext: "7493" },
+                    { name: "박연주", role: "간이통관", ext: "7445" },
+                    { name: "장서윤", role: "간이통관", ext: "7474" },
+                    { name: "이혜선", role: "통관3주무", ext: "7431" },
+                    { name: "임호", role: "간이통관", ext: "7428" },
+                    { name: "박종욱", role: "간이통관", ext: "7429" },
+                    { name: "김세리", role: "간이통관", ext: "7472" },
+                    { name: "김재익", role: "간이통관", ext: "7488" },
+                    { name: "이주원", role: "간이통관", ext: "7473" },
+                    { name: "천지하", role: "간이통관", ext: "7432" },
+                    { name: "손혜라", role: "간이통관", ext: "7418" },
+                    { name: "허지영", role: "간이통관", ext: "7480" },
+                    { name: "최민관", role: "간이통관", ext: "7494" },
+                    { name: "장현규", role: "간이통관", ext: "7438" },
+                    { name: "가명선", role: "간이통관", ext: "7477" },
+                    { name: "윤병욱", role: "간이통관", ext: "7454" },
+                    { name: "함유정", role: "전화상담", ext: "7400" },
+                    { name: "이규미", role: "전화상담", ext: "7400" },
+                    { name: "임태연", role: "전화상담", ext: "7400" },
+                    { name: "고객지원센터", role: "현장통관", ext: "7409" },
+                    { name: "김찬역", role: "수입, 보세운송", ext: "7425" },
+                    { name: "엄두리", role: "수입, 보수작업", ext: "7427" },
+                    { name: "김지수", role: "수입, 외국환", ext: "7419" },
+                    { name: "고진수", role: "수입, 재수출", ext: "7426" },
+                    { name: "이다혜", role: "지재권, 통계, 반송", ext: "7417" },
+                    { name: "김민겸", role: "서무(부)", ext: "7450" },
+                    { name: "서윤경", role: "서무(정)", ext: "7497" },
+                    { name: "이용환", role: "경미마약, 통고처분", ext: "7421" },
+                    { name: "전은정", role: "성과관리, 감사", ext: "7496" }
+                ]
+            },{
+                deptName: "인천공항특송통관1과 (특송통관국)",
+                prefix: "032-723-",
+                members: [
+                    { name: "이재훈", role: "특송통관1과장 (업무총괄)", ext: "4800" },
+                    { name: "김영주", role: "1계 서무주무", ext: "4801" },
+                    { name: "곽희동", role: "1계 (집중선별, 위험관리)", ext: "4590" },
+                    { name: "권오건", role: "1계 (서무, 대외자료 작성)", ext: "4802" },
+                    { name: "권유정", role: "1계 (집중선별, 마약 총괄)", ext: "4846" },
+                    { name: "우은주", role: "1계 (회계, 서무)", ext: "4803" },
+                    { name: "차은선", role: "1계 (검사, 성과관리)", ext: "4593" },
+                    { name: "오지혜", role: "1계 (검사, 통계, 외부자료)", ext: "4568" },
+                    { name: "위상우", role: "1계 (검사, 재반입)", ext: "4598" },
+                    { name: "오주형", role: "1계 (검사, 교육, 홍보)", ext: "4591" },
+                    { name: "김민강", role: "1계 (검사, 회계, 마약)", ext: "4695" },
+                    { name: "한효진", role: "2계 주무", ext: "4808" },
+                    { name: "장현수", role: "2계 (집중선별, 민원)", ext: "4844" },
+                    { name: "최민지", role: "2계 (검사, 포상신청)", ext: "4809" },
+                    { name: "차재희", role: "2계 (검사, 차량관리)", ext: "4599" },
+                    { name: "김선기", role: "2계 (집중선별, 지재권)", ext: "4569" },
+                    { name: "문현정", role: "2계 (검사, 재반입)", ext: "4697" },
+                    { name: "마가원", role: "2계 (검사, 체화 총괄)", ext: "4595" },
+                    { name: "이수광", role: "2계 (검사, 외부자료)", ext: "4827" },
+                    { name: "서연수", role: "2계 (검사, 미결관리)", ext: "4838" },
+                    { name: "박송기", role: "3계 주무", ext: "4816" },
+                    { name: "조주심", role: "3계 (검사, 집중반입관리)", ext: "4820" },
+                    { name: "김서윤", role: "3계 (집중선별, 재반입총괄)", ext: "4832" },
+                    { name: "김현진", role: "3계 (집중선별, 대테리)", ext: "4831" },
+                    { name: "이원용", role: "3계 (검사, C/S)", ext: "4596" },
+                    { name: "최서희", role: "3계 (검사, 포상신청)", ext: "4594" },
+                    { name: "황욱선", role: "3계 (검사, 보안)", ext: "4597" },
+                    { name: "이상희", role: "3계 (검사, 외부자료)", ext: "4835" },
+                    { name: "한용현", role: "4계 주무", ext: "4824" },
+                    { name: "박선미", role: "4계 (집중선별, 감사)", ext: "4830" },
+                    { name: "송희", role: "4계 (검사, 민원)", ext: "4818" },
+                    { name: "한지희", role: "4계 (집중선별, C/S)", ext: "4841" },
+                    { name: "최예지", role: "4계 (검사, 기록물관리)", ext: "4812" },
+                    { name: "임민희", role: "4계 (검사, 재반입)", ext: "4843" },
+                    { name: "김희영", role: "4계 (검사, 외부자료)", ext: "4811" },
+                    { name: "최우정", role: "4계 (검사, 지재권)", ext: "4806" },
+                    { name: "김정자", role: "5계 주무", ext: "4839" },
+                    { name: "김종원", role: "5계 (집중선별 총괄)", ext: "4834" },
+                    { name: "김은수", role: "5계 (집중선별, 통고처분)", ext: "4826" },
+                    { name: "조윤화", role: "5계 (검사, 장비관리)", ext: "4847" },
+                    { name: "김성복", role: "5계 (검사, 통고처분)", ext: "4817" },
+                    { name: "박서영", role: "5계 (검사, 지재권)", ext: "4696" },
+                    { name: "김선아", role: "5계 (검사, 대테러)", ext: "4836" },
+                    { name: "민지경", role: "5계 (검사, 재반입)", ext: "4833" },
+                    { name: "대표 민원전화", role: "공용", ext: "4825" },
+                    { name: "X-PASS PC", role: "공용", ext: "4821" }
+                ]
+            },
+            {
+                deptName: "인천공항특송통관2과 (특송통관국)",
+                prefix: "032-723-",
+                members: [
+                    { name: "안필환", role: "특송통관2과장", ext: "5200" },
+                    { name: "전방복", role: "1계 주무", ext: "5201" },
+                    { name: "김수현", role: "1계", ext: "5204" },
+                    { name: "오동규", role: "1계", ext: "5205" },
+                    { name: "박지수", role: "1계", ext: "5202" },
+                    { name: "김고은", role: "1계", ext: "5208" },
+                    { name: "박은혜", role: "1계", ext: "5207" },
+                    { name: "차미경", role: "1계", ext: "5206" },
+                    { name: "김혜윤", role: "1계", ext: "5203" },
+                    { name: "한명희", role: "2계 주무", ext: "5209" },
+                    { name: "박성철", role: "2계", ext: "5218" },
+                    { name: "이현민", role: "2계", ext: "5210" },
+                    { name: "이기섭", role: "2계", ext: "5213" },
+                    { name: "박은주", role: "2계", ext: "5212" },
+                    { name: "전가영", role: "2계", ext: "5281" },
+                    { name: "신윤경", role: "2계", ext: "5214" },
+                    { name: "김태종", role: "3계 주무", ext: "5217" },
+                    { name: "김도식", role: "3계", ext: "5221" },
+                    { name: "최규상", role: "3계", ext: "5220" },
+                    { name: "정혜령", role: "3계", ext: "5222" },
+                    { name: "한승연", role: "3계", ext: "5219" },
+                    { name: "박혜인", role: "3계", ext: "5211" },
+                    { name: "홍순기", role: "3계", ext: "5215" },
+                    { name: "우성용", role: "4계 주무", ext: "5225" },
+                    { name: "이성우", role: "4계", ext: "5229" },
+                    { name: "김욱중", role: "4계", ext: "5227" },
+                    { name: "이정빈", role: "4계", ext: "5230" },
+                    { name: "신성림", role: "4계", ext: "5231" },
+                    { name: "공문희", role: "4계", ext: "5232" },
+                    { name: "유연", role: "4계", ext: "5216" },
+                    { name: "허진", role: "5계 주무", ext: "5233" },
+                    { name: "백진영", role: "5계", ext: "5234" },
+                    { name: "한정모", role: "5계", ext: "5223" },
+                    { name: "송지영", role: "5계", ext: "5237" },
+                    { name: "김나리", role: "5계", ext: "5280" },
+                    { name: "오현수", role: "5계", ext: "5235" },
+                    { name: "이윤희", role: "5계", ext: "5236" },
+                    { name: "민원", role: "5계", ext: "5228" }
+                ]
+            },
+            {
+                deptName: "인천공항특송통관3과 (특송통관국)",
+                prefix: "032-723-",
+                members: [
+                    { name: "정진", role: "특송통관3과장", ext: "5240" },
+                    { name: "이대희", role: "1계 주무", ext: "5241" },
+                    { name: "박재우", role: "1계", ext: "5258" },
+                    { name: "노태민", role: "1계", ext: "5243" },
+                    { name: "차영미", role: "1계", ext: "5244" },
+                    { name: "김인하", role: "1계", ext: "5247" },
+                    { name: "석유나", role: "1계", ext: "5246" },
+                    { name: "문지영", role: "1계", ext: "5248" },
+                    { name: "최낙현", role: "2계 주무", ext: "5249" },
+                    { name: "박병운", role: "2계", ext: "5250" },
+                    { name: "신대현", role: "2계", ext: "5252" },
+                    { name: "최문정", role: "2계", ext: "5253" },
+                    { name: "남민예", role: "2계", ext: "5251" },
+                    { name: "김로경", role: "2계", ext: "5255" },
+                    { name: "전호준", role: "2계", ext: "5254" },
+                    { name: "이홍현", role: "3계 주무", ext: "5257" },
+                    { name: "방민수", role: "3계", ext: "5245" },
+                    { name: "유소영", role: "3계", ext: "5224" },
+                    { name: "최선희", role: "3계", ext: "5261" },
+                    { name: "이수정", role: "3계", ext: "5259" },
+                    { name: "홍세희", role: "3계", ext: "5262" },
+                    { name: "박가민", role: "3계", ext: "5264" },
+                    { name: "민경길", role: "4계 주무", ext: "5266" },
+                    { name: "강원종", role: "4계", ext: "5265" },
+                    { name: "임복동", role: "4계", ext: "5271" },
+                    { name: "송민우", role: "4계", ext: "5242" },
+                    { name: "유지혜", role: "4계", ext: "5269" },
+                    { name: "최진원", role: "4계", ext: "5270" },
+                    { name: "김은미", role: "4계", ext: "5268" },
+                    { name: "정봉희", role: "5계 주무", ext: "5273" },
+                    { name: "진성용", role: "5계", ext: "5260" },
+                    { name: "김종진", role: "5계", ext: "5274" },
+                    { name: "최윤정", role: "5계", ext: "5276" },
+                    { name: "장지은", role: "5계", ext: "5277" },
+                    { name: "박민주", role: "5계", ext: "5278" },
+                    { name: "이소현", role: "5계", ext: "5279" }
+                ]
+            },{
+                deptName: "수입통관1과 (인천항)",
+                prefix: "032-452-",
+                members: [
+                    { name: "박정우", role: "과장", ext: "3240" },
+                    { name: "성창열", role: "1계 주무", ext: "3251" },
+                    { name: "양형석", role: "1계 (근무배치)", ext: "3545" },
+                    { name: "조은지", role: "1계 (보세구역관리)", ext: "3249" },
+                    { name: "김대수", role: "1계 (서무/회계)", ext: "3188" },
+                    { name: "최민호", role: "1계 (성과관리)", ext: "3255" },
+                    { name: "김광수", role: "1계 (감사)", ext: "3533" },
+                    { name: "박미아", role: "2계 주무", ext: "3259" },
+                    { name: "김재근", role: "2계 (위험관리총괄)", ext: "3519" },
+                    { name: "최연욱", role: "2계 (재수출)", ext: "3248" },
+                    { name: "김시현", role: "2계 (재수출이행)", ext: "3186" },
+                    { name: "천경학", role: "2계 (과징금)", ext: "3530" },
+                    { name: "조윤희", role: "2계 (SOFA)", ext: "3574" },
+                    { name: "신경택", role: "3계 주무", ext: "3252" },
+                    { name: "이지윤", role: "3계 (개별소비세)", ext: "3292" },
+                    { name: "정진혁", role: "3계 (공매예가)", ext: "3245" },
+                    { name: "심은아", role: "3계 (쟁송)", ext: "3294" },
+                    { name: "조성진", role: "3계 (통고처분)", ext: "3531" },
+                    { name: "김기환", role: "4계 주무", ext: "3532" },
+                    { name: "정미경", role: "4계 (정보분석)", ext: "3243" },
+                    { name: "최범선", role: "4계 (민원)", ext: "3243" },
+                    { name: "윤수현", role: "4계 (까르네)", ext: "3538" },
+                    { name: "최종원", role: "4계 (제증명)", ext: "3244" },
+                    { name: "김지윤", role: "4계 (지재권)", ext: "3168" },
+                    { name: "한재일", role: "4계 (방사능 관리)", ext: "3536" }
+                ]
+            },
+            {
+                deptName: "수입통관2과 (인천항)",
+                prefix: "032-452-",
+                members: [
+                    { name: "김학렬", role: "과장", ext: "3280" },
+                    { name: "김상수", role: "1계 주무", ext: "3288" },
+                    { name: "박설희", role: "1계 (서무)", ext: "3269" },
+                    { name: "우동완", role: "1계 (통계)", ext: "3527" },
+                    { name: "윤민호", role: "1계 (기획)", ext: "3287" },
+                    { name: "정현석", role: "1계 (성과)", ext: "3293" },
+                    { name: "문현준", role: "2계 주무", ext: "3319" },
+                    { name: "정은찬", role: "회계", ext: "3371" },
+                    { name: "유지헌", role: "2계 (차량)", ext: "3528" },
+                    { name: "김일균", role: "2계 (취하, 각하)", ext: "3257" },
+                    { name: "강민경", role: "2계 (재수출추징)", ext: "3283" },
+                    { name: "김금순", role: "2계 (감사)", ext: "3267" },
+                    { name: "윤준수", role: "2계 (재수출안내)", ext: "3262" },
+                    { name: "전병도", role: "3계 주무", ext: "3238" },
+                    { name: "김혜미", role: "3계 (제증명)", ext: "3523" },
+                    { name: "김세은", role: "3계 (과징금)", ext: "3516" },
+                    { name: "박세창", role: "3계 (통고처분)", ext: "3268" },
+                    { name: "윤미순", role: "3계 (지식재산권)", ext: "3567" },
+                    { name: "박병구", role: "4계 주무", ext: "3264" },
+                    { name: "최지원", role: "4계 (기록물)", ext: "3265" },
+                    { name: "김민지", role: "4계 (장비, 분석물품)", ext: "3517" },
+                    { name: "한주석", role: "4계 (개소세, 까르네)", ext: "3284" },
+                    { name: "조소현", role: "4계 (체화)", ext: "3285" },
+                    { name: "조성일", role: "4계 (민원)", ext: "3266" }
+                ]
+            },{
+                deptName: "수출통관과 (인천항)",
+                prefix: "032-452-",
+                members: [
+                    { name: "김수복", role: "수출통관과장", ext: "3220" },
+                    { name: "김지혜", role: "수출 1계 주무", ext: "3237" },
+                    { name: "박형철", role: "수출 2계 주무", ext: "3221" },
+                    { name: "백왕근", role: "서무, 회계", ext: "3224" },
+                    { name: "이나현", role: "미선적, 교육", ext: "3222" },
+                    { name: "박지혜", role: "성과관리, 정보분석", ext: "3296" },
+                    { name: "최미진", role: "까르네, 제증명", ext: "3297" },
+                    { name: "송지영", role: "감사, 전자상거래", ext: "3223" },
+                    { name: "허해무", role: "ZVB 운용", ext: "3358" },
+                    { name: "장광우", role: "통고처분, 기록물", ext: "3623" },
+                    { name: "김은정", role: "통고처분, 목록통관", ext: "3317" },
+                    { name: "김민정", role: "범칙감정, 통계", ext: "3092" }
+                ]
+            },
+            {
+                deptName: "심사정보과 (인천항)",
+                prefix: "032-452-",
+                members: [
+                    { name: "김민세", role: "과장", ext: "3350" },
+                    { name: "이지영", role: "심사정보 주무", ext: "3326" },
+                    { name: "신민경", role: "공통업무, 심사기획", ext: "3323" },
+                    { name: "정민채", role: "공통업무, 보정신청·수정신고, 수리후분석", ext: "3696" },
+                    { name: "정재봉", role: "공통업무, 보정신청·수정신고, 통계", ext: "3569" },
+                    { name: "홍진숙", role: "경정청구, 과세자료관리", ext: "3328" },
+                    { name: "박윤영", role: "경정청구, 세액정정, 과세자료 관리", ext: "3315" },
+                    { name: "김세희", role: "과서무, 업무계획, 성과관리, 기록물, 확정가격심사", ext: "3324" },
+                    { name: "함재인", role: "관세법환급 (과오납·위약)", ext: "3330" },
+                    { name: "정상미", role: "세입징수보고·결산, 분할납부·납기연장, 부가세 납부유예", ext: "3322" },
+                    { name: "이다예", role: "FTA 사후적용 심사, FTA 협정정정, 수입신고정정, 세금계산서", ext: "3327" },
+                    { name: "김양현", role: "FTA 사후적용 심사, 수입신고정정, 세금계산서", ext: "3049" },
+                    { name: "김하영", role: "담보, 공매대금, 정부보관금, 월납업체", ext: "3321" },
+                    { name: "오준용", role: "징수주무, 환급사후심사, 소요량 업무, 체납", ext: "3697" },
+                    { name: "장희선", role: "환급 지급, 제증명발급, 환급계좌신청", ext: "3325" }
+                ]
+            }
+        ];
+
+        const directory = document.getElementById('contactDirectory');
+
+        function renderDirectory() {
+            directory.innerHTML = '';
+            customsData.forEach((dept, index) => {
+                const deptDiv = document.createElement('div');
+                deptDiv.className = 'department';
+                
+                // 부서명 헤더
+                const deptTitle = document.createElement('div');
+                deptTitle.className = 'dept-title';
+                deptTitle.innerText = dept.deptName;
+                deptTitle.onclick = () => toggleDept(index);
+                
+                // 직원 리스트
+                const memberList = document.createElement('ul');
+                memberList.className = 'member-list';
+                memberList.id = `dept-list-${index}`;
+                
+                dept.members.forEach(member => {
+                    const fullPhone = dept.prefix + member.ext;
+                    const li = document.createElement('li');
+                    li.className = 'member-item';
+                    li.innerHTML = `
+                        <div class="member-info">
+                            <span class="member-name">${member.name}</span>
+                            <span class="member-role">${member.role} (내선: ${member.ext})</span>
+                        </div>
+                        <a href="tel:${fullPhone.replace(/-/g, '')}" class="call-btn">통화</a>
+                    `;
+                    memberList.appendChild(li);
+                });
+
+                deptDiv.appendChild(deptTitle);
+                deptDiv.appendChild(memberList);
+                directory.appendChild(deptDiv);
+            });
+        }
+
+        // 아코디언 메뉴 토글
+        function toggleDept(index) {
+            const list = document.getElementById(`dept-list-${index}`);
+            const title = list.previousElementSibling;
+            list.classList.toggle('active');
+            title.classList.toggle('active');
+        }
+
+        // 검색 기능
+        function filterContacts() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const departments = document.querySelectorAll('.department');
+
+            departments.forEach((dept) => {
+                let hasVisibleMember = false;
+                const members = dept.querySelectorAll('.member-item');
+                const deptTitleText = dept.querySelector('.dept-title').innerText.toLowerCase();
+
+                members.forEach((member) => {
+                    const memberText = member.innerText.toLowerCase();
+                    if (memberText.includes(searchText) || deptTitleText.includes(searchText)) {
+                        member.style.display = 'flex';
+                        hasVisibleMember = true;
+                    } else {
+                        member.style.display = 'none';
+                    }
+                });
+
+                // 검색어가 있고 매칭되는 데이터가 있으면 목록을 펼쳐줌
+                const list = dept.querySelector('.member-list');
+                const title = dept.querySelector('.dept-title');
+                
+                if (searchText !== '' && hasVisibleMember) {
+                    dept.style.display = 'block';
+                    list.classList.add('active');
+                    title.classList.add('active');
+                } else if (searchText === '') {
+                    dept.style.display = 'block';
+                    list.classList.remove('active');
+                    title.classList.remove('active');
+                    members.forEach(m => m.style.display = 'flex');
+                } else {
+                    dept.style.display = 'none';
+                }
+            });
+        }
+
+        // 초기 렌더링
+        renderDirectory();
+    </script>
+</body>
+</html>
