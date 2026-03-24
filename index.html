@@ -52,30 +52,71 @@
     <script>
         // 💡 여기에 부서와 직원 데이터를 수시로 업데이트하시면 됩니다.
         const customsData = [
-            {
-                deptName: "인천공항수입통관1과 (수출입통관국)",
+          {
+                deptName: "수입통관1과 (인천공항)",
                 prefix: "032-722-",
                 members: [
                     { name: "임채열", role: "과장", ext: "4210" },
                     { name: "이경배", role: "1계 주무", ext: "4211" },
                     { name: "이아름", role: "1계", ext: "4212" },
                     { name: "박지원", role: "1계", ext: "4219" },
-                    { name: "이옥주", role: "1계", ext: "4199" },
                     { name: "김차연", role: "1계", ext: "4234" },
+                    { name: "이옥주", role: "1계", ext: "4199" },
                     { name: "서광수", role: "2계 주무", ext: "4184" },
-                    { name: "정지은", role: "2계", ext: "4214" }
-                    // 필요 시 3계, 4계 등 추가
+                    { name: "정지은", role: "2계", ext: "4214" },
+                    { name: "권민정", role: "2계", ext: "4218" },
+                    { name: "백선옥", role: "2계", ext: "4284" },
+                    { name: "조주영", role: "2계", ext: "4367" },
+                    { name: "신강훈", role: "3계 주무", ext: "4222" },
+                    { name: "김미소", role: "3계", ext: "4230" },
+                    { name: "나민철", role: "3계", ext: "4198" },
+                    { name: "김근홍", role: "3계", ext: "4225" },
+                    { name: "장영지", role: "3계", ext: "4223" },
+                    { name: "채숙기", role: "4계 주무", ext: "4231" },
+                    { name: "박해린", role: "4계", ext: "4240" },
+                    { name: "백선빈", role: "4계", ext: "4215" },
+                    { name: "한기수", role: "4계", ext: "4213" },
+                    { name: "강관구", role: "5계 주무", ext: "4229" },
+                    { name: "김경훈", role: "5계", ext: "4383" },
+                    { name: "김태희", role: "5계", ext: "4185" },
+                    { name: "강유라", role: "5계", ext: "4217" },
+                    { name: "김지수", role: "5계", ext: "4182" },
+                    { name: "전승준", role: "6계 주무", ext: "4160" },
+                    { name: "박승배", role: "6계", ext: "4387" },
+                    { name: "김미경", role: "6계", ext: "4216" },
+                    { name: "이연경", role: "6계", ext: "4388" },
+                    { name: "변수정", role: "6계", ext: "4161" },
+                    { name: "배민정", role: "6계", ext: "4282" },
+                    { name: "노용희", role: "6계", ext: "4280" },
+                    { name: "김홍미", role: "6계", ext: "번호확인요망" }
                 ]
             },
             {
-                deptName: "인천공항수입통관2과 (수출입통관국)",
+                deptName: "수입통관2과 (인천공항)",
                 prefix: "032-722-",
                 members: [
-                    { name: "박재호", role: "과장", ext: "4251" }, // 과장 내선번호 확인 필요(이미지상 안보임, 임의 기재)
+                    { name: "박재호", role: "과장", ext: "번호확인요망" },
+                    { name: "김연태", role: "1계 주무", ext: "4270" },
+                    { name: "백연옥", role: "1계", ext: "4272" },
+                    { name: "이지희", role: "1계", ext: "4271" },
+                    { name: "한다운", role: "1계", ext: "4269" },
                     { name: "김미현", role: "2계 주무", ext: "4251" },
                     { name: "김영길", role: "2계", ext: "4252" },
                     { name: "강민지", role: "2계", ext: "4253" },
-                    { name: "김연태", role: "1계 주무", ext: "4270" }
+                    { name: "이현지", role: "2계", ext: "4258" },
+                    { name: "최만재", role: "3계 주무", ext: "4254" },
+                    { name: "조한일", role: "3계", ext: "4275" },
+                    { name: "문희경", role: "3계", ext: "4255" },
+                    { name: "송동규", role: "3계", ext: "4259" },
+                    { name: "이상열", role: "4계 주무", ext: "4265" },
+                    { name: "이영경", role: "4계", ext: "4261" },
+                    { name: "양지은", role: "4계", ext: "4256" },
+                    { name: "신석민", role: "5계 주무", ext: "4281" },
+                    { name: "고명현", role: "5계", ext: "4279" },
+                    { name: "김지연", role: "5계", ext: "4260" },
+                    { name: "성택주", role: "6계 주무", ext: "4257" },
+                    { name: "박성주", role: "6계", ext: "4266" },
+                    { name: "이지은", role: "6계", ext: "4278" }
                 ]
             },
             {
@@ -482,8 +523,7 @@
                     { name: "황진선", role: "원산지증명서 담당", ext: "3162" },
                     { name: "김유미", role: "원산지증명서 담당", ext: "3394" }
                 ]
-            },
-            {
+            },{
                 deptName: "협업검사담당 (인천세관)",
                 prefix: "032-454-",
                 members: [
